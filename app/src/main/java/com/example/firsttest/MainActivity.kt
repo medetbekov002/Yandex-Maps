@@ -36,33 +36,39 @@ import com.yandex.runtime.network.NetworkError
 import com.yandex.runtime.network.RemoteError
 
 
-class MainActivity : AppCompatActivity(), UserLocationObjectListener, Session.SearchListener, CameraListener, DrivingSession.DrivingRouteListener{
+class MainActivity : AppCompatActivity(), UserLocationObjectListener, Session.SearchListener,
+    CameraListener, DrivingSession.DrivingRouteListener {
 
-    lateinit var mapview:MapView
-    lateinit var probkibut:Button
+    lateinit var mapview: MapView
+    lateinit var probkibut: Button
     lateinit var locationmapkit: UserLocationLayer
-    lateinit var searchEdit:EditText
+    lateinit var searchEdit: EditText
     lateinit var searchManager: SearchManager
     lateinit var searchSession: Session
     private var ROUTE_START_LOCATION = Point(47.229410, 39.718281)
     private var ROUTE_END_LOCATION = Point(47.214004, 39.794605)
     private var SCREEN_CENTER = Point(
-        (ROUTE_START_LOCATION.latitude+ROUTE_END_LOCATION.latitude)/2,
-        (ROUTE_START_LOCATION.longitude+ROUTE_END_LOCATION.longitude)/2
+        (ROUTE_START_LOCATION.latitude + ROUTE_END_LOCATION.latitude) / 2,
+        (ROUTE_START_LOCATION.longitude + ROUTE_END_LOCATION.longitude) / 2
     )
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
-    private var mapObjects:MapObjectCollection? = null
-    private var drivingRouter:DrivingRouter? = null
-    private var drivingSession:DrivingSession? = null
-    lateinit var btlv:Button
-    lateinit var btral:Button
+    private var mapObjects: MapObjectCollection? = null
+    private var drivingRouter: DrivingRouter? = null
+    private var drivingSession: DrivingSession? = null
+    lateinit var btlv: Button
+    lateinit var btral: Button
 
     lateinit var listview: ListView
     var list = mutableListOf<Model>()
-    lateinit var adapter:MyListAdapter
+    lateinit var adapter: MyListAdapter
 
-    private fun sumbitQuery(query:String){
-        searchSession = searchManager.submit(query, VisibleRegionUtils.toPolygon(mapview.map.visibleRegion), SearchOptions(), this)
+    private fun sumbitQuery(query: String) {
+        searchSession = searchManager.submit(
+            query,
+            VisibleRegionUtils.toPolygon(mapview.map.visibleRegion),
+            SearchOptions(),
+            this
+        )
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -71,18 +77,17 @@ class MainActivity : AppCompatActivity(), UserLocationObjectListener, Session.Se
         MapKitFactory.initialize(this)
         setContentView(R.layout.activity_main)
         mapview = findViewById(R.id.mapview)
-        var mapKit:MapKit = MapKitFactory.getInstance()
+        var mapKit: MapKit = MapKitFactory.getInstance()
         requstLocationPermission()
         var probki = mapKit.createTrafficLayer(mapview.mapWindow)
         probki.isTrafficVisible = false
         probkibut = findViewById(R.id.probkibut)
         probkibut.setOnClickListener {
-            if(probki.isTrafficVisible == false){
+            if (probki.isTrafficVisible == false) {
                 probki.isTrafficVisible = true
                 probkibut.setBackgroundResource(R.drawable.simpleblue)
-            }
-            else{
-                probki.isTrafficVisible= false
+            } else {
+                probki.isTrafficVisible = false
                 probkibut.setBackgroundResource(R.drawable.blueoff)
             }
         }
@@ -90,15 +95,14 @@ class MainActivity : AppCompatActivity(), UserLocationObjectListener, Session.Se
         btlv = findViewById(R.id.btlv)
         btral = findViewById(R.id.btral)
         btral.setOnClickListener { mapObjects!!.clear() }
-        var opened =false
+        var opened = false
         btlv.setOnClickListener {
-            if(opened){
-                listview.visibility= View.VISIBLE
+            if (opened) {
+                listview.visibility = View.VISIBLE
                 opened = false
-            }
-            else{
-                listview.visibility= View.INVISIBLE
-                opened =true
+            } else {
+                listview.visibility = View.INVISIBLE
+                opened = true
             }
         }
         locationmapkit = mapKit.createUserLocationLayer(mapview.mapWindow)
@@ -122,7 +126,7 @@ class MainActivity : AppCompatActivity(), UserLocationObjectListener, Session.Se
     }
 
     @SuppressLint("MissingPermission")
-    private fun reaacord(){
+    private fun reaacord() {
         val db = Firebase.firestore
         db.collection("cords")
             .get()
@@ -131,29 +135,45 @@ class MainActivity : AppCompatActivity(), UserLocationObjectListener, Session.Se
                     var name = document.get("name").toString()
                     var lat = document.get("lat").toString().toDouble()
                     var lon = document.get("lon").toString().toDouble()
-                    mapObjects!!.addPlacemark(Point(lat,lon))
+                    mapObjects!!.addPlacemark(Point(lat, lon))
                     list.add(Model(name, lat.toString(), lon.toString()))
                     adapter = MyListAdapter(this, R.layout.row, list)
                     listview.adapter = adapter
-                    fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
+                    fusedLocationProviderClient =
+                        LocationServices.getFusedLocationProviderClient(this)
                     fusedLocationProviderClient.lastLocation.addOnSuccessListener { location: android.location.Location? ->
-                            ROUTE_START_LOCATION = Point(location?.latitude.toString().toDouble(), location?.longitude.toString().toDouble())
-                            true
+                        ROUTE_START_LOCATION = Point(
+                            location?.latitude.toString().toDouble(),
+                            location?.longitude.toString().toDouble()
+                        )
+                        true
                     }
                     listview.setOnItemClickListener { parent, view, position, id ->
-                        when(position){
-                            0 ->{ ROUTE_END_LOCATION = Point(47.255556, 39.793932);
-                                SCREEN_CENTER  = Point((ROUTE_START_LOCATION.latitude+ROUTE_END_LOCATION.latitude)/2, (ROUTE_START_LOCATION.longitude+ROUTE_END_LOCATION.longitude)/2)
+                        when (position) {
+                            0 -> {
+                                ROUTE_END_LOCATION = Point(47.255556, 39.793932);
+                                SCREEN_CENTER = Point(
+                                    (ROUTE_START_LOCATION.latitude + ROUTE_END_LOCATION.latitude) / 2,
+                                    (ROUTE_START_LOCATION.longitude + ROUTE_END_LOCATION.longitude) / 2
+                                )
                                 sumbitRequest()
                             }
+
                             1 -> {
                                 ROUTE_END_LOCATION = Point(47.268415, 39.714822)
-                                SCREEN_CENTER  = Point((ROUTE_START_LOCATION.latitude+ROUTE_END_LOCATION.latitude)/2, (ROUTE_START_LOCATION.longitude+ROUTE_END_LOCATION.longitude)/2)
+                                SCREEN_CENTER = Point(
+                                    (ROUTE_START_LOCATION.latitude + ROUTE_END_LOCATION.latitude) / 2,
+                                    (ROUTE_START_LOCATION.longitude + ROUTE_END_LOCATION.longitude) / 2
+                                )
                                 sumbitRequest()
                             }
+
                             2 -> {
                                 ROUTE_END_LOCATION = Point(47.203156, 39.641854)
-                                SCREEN_CENTER  = Point((ROUTE_START_LOCATION.latitude+ROUTE_END_LOCATION.latitude)/2, (ROUTE_START_LOCATION.longitude+ROUTE_END_LOCATION.longitude)/2)
+                                SCREEN_CENTER = Point(
+                                    (ROUTE_START_LOCATION.latitude + ROUTE_END_LOCATION.latitude) / 2,
+                                    (ROUTE_START_LOCATION.longitude + ROUTE_END_LOCATION.longitude) / 2
+                                )
                                 sumbitRequest()
                             }
                         }
@@ -166,13 +186,29 @@ class MainActivity : AppCompatActivity(), UserLocationObjectListener, Session.Se
 
             }
     }
-    private fun requstLocationPermission(){
-        if(ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)!= PackageManager.PERMISSION_GRANTED &&
-            ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)!= PackageManager.PERMISSION_GRANTED){
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION), 0)
+
+    private fun requstLocationPermission() {
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED &&
+            ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ),
+                0
+            )
             return
         }
     }
+
     override fun onStop() {
         mapview.onStop()
         MapKitFactory.getInstance().onStop()
@@ -187,18 +223,23 @@ class MainActivity : AppCompatActivity(), UserLocationObjectListener, Session.Se
 
     override fun onObjectAdded(userLocationView: UserLocationView) {
         locationmapkit.setAnchor(
-            PointF((mapview.width() *0.5).toFloat(), (mapview.height()*0.5).toFloat()),
-            PointF((mapview.width() *0.5).toFloat(), (mapview.height()*0.83).toFloat())
+            PointF((mapview.width() * 0.5).toFloat(), (mapview.height() * 0.5).toFloat()),
+            PointF((mapview.width() * 0.5).toFloat(), (mapview.height() * 0.83).toFloat())
         )
         userLocationView.arrow.setIcon(ImageProvider.fromResource(this, R.drawable.user_arrow))
         val picIcon = userLocationView.pin.useCompositeIcon()
-        picIcon.setIcon("icon", ImageProvider.fromResource(this, R.drawable.nothing), IconStyle().
-        setAnchor(PointF(0f,0f))
+        picIcon.setIcon(
+            "icon",
+            ImageProvider.fromResource(this, R.drawable.nothing),
+            IconStyle().setAnchor(PointF(0f, 0f))
 
         )
 
-        picIcon.setIcon("pin", ImageProvider.fromResource(this, R.drawable.nothing),
-            IconStyle().setAnchor(PointF(0.5f,05f)).setRotationType(RotationType.ROTATE).setZIndex(1f).setScale(0.5f))
+        picIcon.setIcon(
+            "pin", ImageProvider.fromResource(this, R.drawable.nothing),
+            IconStyle().setAnchor(PointF(0.5f, 05f)).setRotationType(RotationType.ROTATE)
+                .setZIndex(1f).setScale(0.5f)
+        )
         userLocationView.accuracyCircle.fillColor = Color.BLUE and -0x66000001
     }
 
@@ -210,20 +251,23 @@ class MainActivity : AppCompatActivity(), UserLocationObjectListener, Session.Se
     }
 
     override fun onSearchResponse(response: Response) {
-        val mapObjects:MapObjectCollection = mapview.map.mapObjects
-        for(searchResult in response.collection.children){
+        val mapObjects: MapObjectCollection = mapview.map.mapObjects
+        for (searchResult in response.collection.children) {
             val resultLocation = searchResult.obj!!.geometry[0].point!!
-            if(response!=null){
-                mapObjects.addPlacemark(resultLocation, ImageProvider.fromResource(this, R.drawable.search_result))
+            if (response != null) {
+                mapObjects.addPlacemark(
+                    resultLocation,
+                    ImageProvider.fromResource(this, R.drawable.search_result)
+                )
             }
         }
     }
 
     override fun onSearchError(error: Error) {
-        var errorMessage="Неизвестная Ошибка!"
-        if(error is RemoteError){
-            errorMessage ="Беспрводная ошибка!"
-        } else if(error is NetworkError){
+        var errorMessage = "Неизвестная Ошибка!"
+        if (error is RemoteError) {
+            errorMessage = "Беспрводная ошибка!"
+        } else if (error is NetworkError) {
             errorMessage = "Проблема с интрнетом!"
         }
         Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
@@ -235,13 +279,13 @@ class MainActivity : AppCompatActivity(), UserLocationObjectListener, Session.Se
         cameraUpdateReason: CameraUpdateReason,
         finished: Boolean
     ) {
-        if(finished){
+        if (finished) {
             sumbitQuery(searchEdit.text.toString())
         }
     }
 
     override fun onDrivingRoutes(p0: MutableList<DrivingRoute>) {
-        for(route in p0){
+        for (route in p0) {
             mapObjects!!.addPolyline(route.geometry)
         }
     }
@@ -250,13 +294,15 @@ class MainActivity : AppCompatActivity(), UserLocationObjectListener, Session.Se
         var errorMessage = "Неизвестная ошибка!"
         Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT)
     }
+
     //Важная -----------------------------------------------------------------------
     private fun sumbitRequest() {
         val drivingOptions = DrivingOptions()
         val vehicleOptions = VehicleOptions()
-        val requestPoints:ArrayList<RequestPoint> = ArrayList()
-        requestPoints.add(RequestPoint(ROUTE_START_LOCATION,RequestPointType.WAYPOINT,null))
-        requestPoints.add(RequestPoint(ROUTE_END_LOCATION,RequestPointType.WAYPOINT,null))
-        drivingSession = drivingRouter!!.requestRoutes(requestPoints,drivingOptions,vehicleOptions,this)
+        val requestPoints: ArrayList<RequestPoint> = ArrayList()
+        requestPoints.add(RequestPoint(ROUTE_START_LOCATION, RequestPointType.WAYPOINT, null))
+        requestPoints.add(RequestPoint(ROUTE_END_LOCATION, RequestPointType.WAYPOINT, null))
+        drivingSession =
+            drivingRouter!!.requestRoutes(requestPoints, drivingOptions, vehicleOptions, this)
     }
 }
